@@ -12,10 +12,10 @@
 #include <fcntl.h>
 #include <string.h>
 
-#define NR_CPU		2
-#define NR_GROUPS	2
-#define NR_THREADS 	10
-#define DURATION	1e+3	//in micro seconds
+#define NR_CPU		1
+#define NR_GROUPS	1
+#define NR_THREADS 	5
+#define DURATION	1e+6	//in micro seconds
 #define MAX_DATA_SIZE 	4
 #define MAXCOUNT	100000
 
@@ -58,7 +58,7 @@ void usage(char *cmd)
 		"-g\t\tNo. of thread groups (default: 2)\n"
 		"-d\t\tSize of shared data in bytes (default: 4)\n"
 		"-u\t\tDuration of test run in us\n"
-		"-m\t\tDuratino of test run in ms\n"
+		"-m\t\tDuration of test run in ms\n"
 		"-s\t\tDuration	of test run in s\n"
 		"-M\t\tMode of test run (default: normal)\n"
 		"Note: If more than one option for test duration are specified then"
@@ -138,7 +138,7 @@ static inline void set_group(pid_t tid, char *group)
 
 pthread_mutex_t atomic_lock;// = PTHREAD_MUTEX_INITIALIZER;
 
-int ready_count;
+int ready_count = 0;
 
 static inline void atomic_inc(int *x)
 {
@@ -161,7 +161,7 @@ void *foo(void *arg)
 	t = (struct thread *)arg;
 	gid = t->gid;
 	tid = gettid();
-	if(mode == 'b')
+/*	if(mode == 'b')
 	{
 		cpu_set_t mask;
 		int rc;
@@ -228,21 +228,51 @@ void *foo(void *arg)
 		else
 			set_group(tid, "b");
 	}
+*/
+	pthread_mutex_lock(&atomic_lock);
+	++ready_count;
+	pthread_mutex_unlock(&atomic_lock);
 
-	atomic_inc(&ready_count);
-
+	pthread_mutex_lock(&grp[gid].data_lock);
 	while (!test_stop) {
-		pthread_mutex_lock(&grp[gid].data_lock);
+
 		int i;
 		for(i = 0; i < shared_data_size / sizeof(int); i++)
 		{
 			grp[gid].data[i]++;
-			if(grp[gid].data[i] == 2e+31-1)
+			if(grp[gid].data[i] == 8)
 				grp[gid].data[i] = 0;
 		}
 		t->loop_count++;
-		pthread_mutex_unlock(&grp[gid].data_lock);
+
 	}
+	pthread_mutex_unlock(&grp[gid].data_lock);
+}
+
+void *boo(void *arg)
+{
+
+	pthread_mutex_lock(&lock);
+
+	int i,j;
+	for (i=0; i < ngroups; i++)
+	{
+		for(j = 0; j < group_size; j++)
+		{
+			int *temp = (int *)malloc(sizeof(int));
+			*temp = i;
+			grp[i].tids[j].gid = i;
+			pthread_create(&grp[i].tids[j].tid, NULL, foo, &grp[i].tids[j]);
+		}
+	}
+
+	while (atomic_read(&ready_count) != (ngroups * group_size))
+		;
+
+	pthread_mutex_unlock(&lock);
+	usleep(duration);
+
+	test_stop = 1;
 }
 
 main(int argc, char *argv[])
@@ -282,27 +312,12 @@ main(int argc, char *argv[])
 		}
 	}
 
-	pthread_mutex_lock(&lock);
-
-	for (i=0; i < ngroups; i++)
-	{
-		for(j = 0; j < group_size; j++)
-		{
-			int *temp = (int *)malloc(sizeof(int));
-			*temp = i;
-			grp[i].tids[j].gid = i;
-			pthread_create(&grp[i].tids[j].tid, NULL, foo, &grp[i].tids[j]);
-		}
-	}
-
-	while (atomic_read(&ready_count) != (ngroups * group_size))
-		;
-
-	pthread_mutex_unlock(&lock);
-	usleep(duration);
-
-	test_stop = 1;
-
+	pthread_t first_child;
+	pthread_create(&first_child, NULL, boo, NULL);
+	
+	usleep(2*duration);
+	
+	pthread_join(first_child, NULL);
 	for (i=0; i < ngroups; i++)
 		for(j = 0; j < group_size; j++)
 			pthread_join(grp[i].tids[j].tid, NULL);
@@ -324,6 +339,7 @@ main(int argc, char *argv[])
 		printf("\n");
 	}	
 	printf("Total count: %ld\n", tot_count);
+	pthread_exit(NULL);
 	/*d1 = etv.tv_sec + etv.tv_usec*1e-6;
 	d2 = btv.tv_sec + btv.tv_usec*1e-6;
 
