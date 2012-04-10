@@ -1,0 +1,6 @@
+After cloning the repo to your machine :
+$ ./install.sh
+$ export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
+$ gcc deadlocks deadlocks.c -L. -llockdep -lpthread
+
+
