@@ -1,6 +1,9 @@
 /*
  * Runtime locking correctness validator
- * Copyright (c) 2012 Sanketh Nalli
+ * - By Sanketh Nalli
+ * Fourth year Engineering Student,
+ * Dept. of Information Techonlogy,
+ * NIT-K, India
  *
  * This code maps all the lock dependencies as they occur in a live program
  * and will warn about the following classes of locking bugs:
@@ -57,7 +60,7 @@ void _init()
 {
 	fp = fopen("lockdep.log","w"); /* open for writing */
 	fprintf(fp,"*************************************************************\n");	
-	fprintf(fp,"Lock dependency validator: Copyright (c) 2012 Sanketh Nalli\n");
+	fprintf(fp,"Lock dependency validator: 2012 Sanketh Nalli\n");
 
 	fprintf(fp,"... MAX_LOCK_DEPTH:          %lu\n", MAX_LOCK_DEPTH);
 	fprintf(fp,"... MAX_LOCKDEP_ENTRIES:     %lu\n", MAX_LOCKDEP_ENTRIES);

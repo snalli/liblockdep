@@ -1,0 +1,68 @@
+*************************************************************
+Lock dependency validator: 2012 Sanketh Nalli
+... MAX_LOCK_DEPTH:          64
+... MAX_LOCKDEP_ENTRIES:     256
+... MAX_NR_THREADS:          64
+ memory used by lock dependency info: 5128 bytes
+ per thread memory footprint: 1044 bytes
+*************************************************************
+
+new dependency:
+(&d_lock) , at: 138, func6, deadlocks.c => 
+(&a_lock) , at: 140, func6, deadlocks.c
+by: &o_thd/3036482416 
+
+
+new dependency:
+(&c_lock) , at: 117, func5, deadlocks.c => 
+(&d_lock) , at: 119, func5, deadlocks.c
+by: &n_thd/3044875120 
+
+
+new dependency:
+(&b_lock) , at: 97, func4, deadlocks.c => 
+(&c_lock) , at: 99, func4, deadlocks.c
+by: &m_thd/3053267824 
+
+
+=======================================================
+[ INFO: possible circular locking dependency detected ]
+-------------------------------------------------------
+&l_thd/3061660528 is trying to acquire lock:
+(&b_lock) , at: 79, func3, deadlocks.c
+but task is already holding lock:
+(&a_lock) , at: 77, func3, deadlocks.c
+which already depends on the new lock.
+
+
+new dependency:
+(&a_lock) , at: 77, func3, deadlocks.c => 
+(&b_lock) , at: 79, func3, deadlocks.c
+by: &l_thd/3061660528 
+
+
+=======================================================
+[ INFO: possible circular locking dependency detected ]
+-------------------------------------------------------
+&k_thd/3070053232 is trying to acquire lock:
+(&a_lock) , at: 57, func2, deadlocks.c
+but task is already holding lock:
+(&b_lock) , at: 55, func2, deadlocks.c
+which already depends on the new lock.
+
+
+new dependency:
+(&b_lock) , at: 55, func2, deadlocks.c => 
+(&a_lock) , at: 57, func2, deadlocks.c
+by: &k_thd/3070053232 
+
+
+=======================================================
+[ INFO: possible circular locking dependency detected ]
+-------------------------------------------------------
+&j_thd/3078445936 is trying to acquire lock:
+(&b_lock) , at: 39, func1, deadlocks.c
+but task is already holding lock:
+(&a_lock) , at: 37, func1, deadlocks.c
+which already depends on the new lock.
+

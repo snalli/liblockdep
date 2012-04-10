@@ -3,4 +3,6 @@ $ ./install.sh
 $ export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
 $ gcc deadlocks deadlocks.c -L. -llockdep -lpthread
 
-
+The lock validator generates a lockdep.log
+showing all lock dependencies and
+potential deadlocks.
